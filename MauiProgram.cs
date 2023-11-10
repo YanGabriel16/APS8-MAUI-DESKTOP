@@ -1,5 +1,4 @@
-﻿using APS8_MAUI_DESKTOP.Data;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
 namespace APS8_MAUI_DESKTOP
 {
@@ -17,12 +16,11 @@ namespace APS8_MAUI_DESKTOP
 
             builder.Services.AddMauiBlazorWebView();
 
-#if DEBUG
 		builder.Services.AddBlazorWebViewDeveloperTools();
+#if DEBUG
 		builder.Logging.AddDebug();
 #endif
 
-            builder.Services.AddSingleton<WeatherForecastService>();
 
             return builder.Build();
         }
