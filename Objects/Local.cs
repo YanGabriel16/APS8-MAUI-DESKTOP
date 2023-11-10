@@ -6,7 +6,7 @@ namespace APS8_MAUI_DESKTOP.Objects
         public string Nome { get; set; }
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
-        public int? CEP { get; set; }
+        public string Cep { get; set; }
         public string Cidade { get; set; }
         public string Estado { get; set; }
         public string Pais { get; set; }

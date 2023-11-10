@@ -1,8 +1,80 @@
 ﻿@page "/locais/listar"
 
-<h1>Locais</h1>
+@using System.Linq.Dynamic.Core
+@using APS8_MAUI_DESKTOP.Objects;
+@using APS8_MAUI_DESKTOP.Services;
+@using APS8_MAUI_DESKTOP.Utils;
+@inject LocalService _localService;
+@inject NotificationService NotificationService;
+
+<div Class="rz-p-0 rz-p-md-12">
+    <RadzenCard Variant="Variant.Filled" Class="rz-mx-auto">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Gap="0.5rem" Wrap="FlexWrap.Wrap">
+            <RadzenButton Click=@(args => OnClick("Primary icon button")) Icon="add" Text="Adicionar Local" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton Click=@(args => OnClick("Primary icon button")) Icon="refresh" ButtonStyle="ButtonStyle.Primary" />
+        </RadzenStack>
+    </RadzenCard>
+
+    <RadzenCard Variant="Variant.Filled" Class="rz-mx-auto" Style="margin-top: 2rem">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap" Style="margin-bottom: 0.5rem">
+            <RadzenSplitButton Click=@(args => OnClickQuantidadePagina(args)) Text="Quantidade: 5" ButtonStyle="ButtonStyle.Dark" Variant="Variant.Outlined">
+                <ChildContent>
+                    <RadzenSplitButtonItem Text="Quantidade: 10" Value="10" />
+                    <RadzenSplitButtonItem Text="Quantidade: 25" Value="25" />
+                    <RadzenSplitButtonItem Text="Quantidade: 50" Value="50" />
+                </ChildContent>
+            </RadzenSplitButton>
+        </RadzenStack>
+        <RadzenDataGrid AllowAlternatingRows="false" PageSize="@PageSize" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                        Data="@Locais" TItem="Local" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or">
+            <Columns>
+                <RadzenDataGridColumn TItem="Local" Property="Id" Filterable="false" Title="Cod" Frozen="true" Width="5%" TextAlign="TextAlign.Center" />
+                <RadzenDataGridColumn TItem="Local" Property="Nome" Title="Local" Width="15%" />
+                <RadzenDataGridColumn TItem="Local" Property="Cep" Title="CEP" Width="15%" />
+                <RadzenDataGridColumn TItem="Local" Property="Latitude" Title="Latitude" Width="15%" />
+                <RadzenDataGridColumn TItem="Local" Property="Longitude" Title="Longitude" Width="15%" />
+                <RadzenDataGridColumn TItem="Local" Title="Status" Sortable="false" Filterable="false" Width="15%" TextAlign="TextAlign.Center">
+                    <Template Context="data">
+                        <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center">
+                            <RadzenBadge BadgeStyle="@ClimaUtils.GetClimaBadge(@data.Id)" Text="@data.Dados.First().Clima.List.First().Weather.First().Description" />
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Local" Title="" Sortable="false" Filterable="false" Width="15%" TextAlign="TextAlign.Center">
+                    <Template>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap">
+                            <RadzenButton Click=@(args => OnClick("Primary icon button")) Icon="settings" ButtonStyle="ButtonStyle.Primary" />
+                            <RadzenButton Click=@(args => OnClick("Warning icon button ")) Icon="edit" ButtonStyle="ButtonStyle.Warning" />
+                            <RadzenButton Click=@(args => OnClick("Danger icon button")) Icon="delete" ButtonStyle="ButtonStyle.Danger" />
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenCard>
+</div>
+
 
 
 @code {
+    List<Local> Locais;
+    int PageSize = 5;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        this.Locais = await _localService.GetLocais();
+    }
+
+    private void OnClick(string text)
+    {
+        NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Button Clicked", Detail = text });
+    }
+
+    void OnClickQuantidadePagina(RadzenSplitButtonItem item)
+    {
+        if (item != null && int.TryParse(item.Value, out int quantidade)) this.PageSize = quantidade;
+        else this.PageSize = 2;
+    }
 }
