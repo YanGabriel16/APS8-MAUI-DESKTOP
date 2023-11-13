@@ -10,7 +10,7 @@
 <div Class="rz-p-0 rz-p-md-12">
     <RadzenCard Variant="Variant.Filled" Class="rz-mx-auto">
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Gap="0.5rem" Wrap="FlexWrap.Wrap">
-            <RadzenButton Click=@(args => NavigationManager.NavigateTo("/locais/listar")) Icon="chevron_left" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton Click=@(args => NavigationManager.NavigateTo("/locais/listar")) Disabled=@loading Icon="chevron_left" ButtonStyle="ButtonStyle.Primary" />
         </RadzenStack>
     </RadzenCard>
 
@@ -19,28 +19,28 @@
                 <RadzenColumn Size="12">
                     <RadzenStack>
                         <RadzenFormField Text="Nome do local" Variant="Variant.Outlined">
-                            <RadzenTextBox @bind-Value="@request.Nome" />
+                            <RadzenTextBox Disabled=@loading @bind-Value="@request.Nome" />
                         </RadzenFormField>
                         <RadzenFormField Text="Latitude" Variant="Variant.Outlined">
-                            <RadzenNumeric @bind-Value="@request.Latitude" />
+                            <RadzenNumeric Disabled=@loading @bind-Value="@request.Latitude" />
                         </RadzenFormField>
                         <RadzenFormField Text="Longitude" Variant="Variant.Outlined">
-                            <RadzenNumeric @bind-Value="@request.Longitude" />
+                            <RadzenNumeric Disabled=@loading @bind-Value="@request.Longitude" />
                         </RadzenFormField>
                         <RadzenFormField Text="CEP" Variant="Variant.Outlined">
-                            <RadzenNumeric @bind-Value="@request.Cep" />
+                            <RadzenNumeric Disabled=@loading @bind-Value="@request.Cep" />
                         </RadzenFormField>
-                        <RadzenButton Click=@(args => NavigationManager.NavigateTo("/locais/adicionar")) Text="Consultar CEP" ButtonStyle="ButtonStyle.Primary" />
+                    <RadzenButton Click=@(async args => request = await OnClickConsultarCep()) Disabled=@loading Text="Consultar CEP" ButtonStyle="ButtonStyle.Primary" />
                         <RadzenFormField Text="Cidade" Variant="Variant.Outlined">
-                            <RadzenTextBox @bind-Value="@request.Cidade" />
+                            <RadzenTextBox Disabled=@loading @bind-Value="@request.Cidade" />
                         </RadzenFormField>
                         <RadzenFormField Text="Estado" Variant="Variant.Outlined">
-                            <RadzenTextBox @bind-Value="@request.Estado" />
+                            <RadzenTextBox Disabled=@loading @bind-Value="@request.Estado" />
                         </RadzenFormField>
                         <RadzenFormField Text="País" Variant="Variant.Outlined">
-                            <RadzenTextBox @bind-Value="@request.Pais" />
+                            <RadzenTextBox Disabled=@loading @bind-Value="@request.Pais" />
                         </RadzenFormField>
-                        <RadzenButton Click=@(args => NavigationManager.NavigateTo("/locais/adicionar")) Text="Adicionar" ButtonStyle="ButtonStyle.Primary" />
+                    <RadzenButton Click=@(async args => await OnClickAdicionar()) Disabled=@loading Text="Adicionar" ButtonStyle="ButtonStyle.Primary" />
                     </RadzenStack>
                 </RadzenColumn>
             </RadzenRow>
@@ -49,4 +49,37 @@
 
 @code {
     AdicionarLocalRequest request = new AdicionarLocalRequest();
+    bool loading = false;
+
+    private async Task OnClickAdicionar()
+    {
+        this.loading = true;
+        var result = await _localService.AdicionarLocal(request);
+        this.loading = false;
+
+        if (result)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Sucesso", Detail = "Local Adicionado", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
+            this.request = new AdicionarLocalRequest();
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Erro", Detail = "Erro ao adicionar o local", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
+        }
+    }
+
+    private async Task<AdicionarLocalRequest> OnClickConsultarCep()
+    {
+        this.loading = true;
+        var endereco = await _localService.GetEndereco(this.request.Cep.ToString());
+        var local = this.request;
+        local.Latitude = (double)endereco.Latitude;
+        local.Longitude = (double)endereco.Longitude;
+        local.Cidade = endereco.Localidade;
+        local.Estado = endereco.Uf;
+        local.Pais = "Brasil";
+        this.loading = false;
+
+        return local;
+    }
 }

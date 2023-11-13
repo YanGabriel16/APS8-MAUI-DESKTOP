@@ -5,14 +5,7 @@
 @inject LocalService _localService;
 @inject NotificationService NotificationService;
 @inject NavigationManager NavigationManager;
-
-
-@using APS8_MAUI_DESKTOP.Objects;
-@using APS8_MAUI_DESKTOP.Services;
-@inject LocalService _localService;
-@inject NotificationService NotificationService;
-@inject NavigationManager NavigationManager
-
+@inject DialogService DialogService
 
 <div Class="rz-p-0 rz-p-md-12">
     <RadzenCard Variant="Variant.Filled" Class="rz-mx-auto">
@@ -50,7 +43,7 @@
                     <RadzenFormField Text="País" Variant="Variant.Text">
                         <RadzenTextBox Disabled="true" @bind-Value="@entidade.Pais" />
                     </RadzenFormField>
-                    <RadzenButton Click=@(args => NavigationManager.NavigateTo($"/locais/excluir/{entidade.Id}")) Text="Excluir" ButtonStyle="ButtonStyle.Danger" />
+                    <RadzenButton Click=@(async args => await OnClickExcluir()) Text="Excluir" ButtonStyle="ButtonStyle.Danger" />
                 </RadzenStack>
             </RadzenColumn>
         </RadzenRow>
@@ -71,9 +64,26 @@
         this.loading = false;
     }
 
-    private void OnClick(string text)
+    private async Task OnClickExcluir()
     {
-        NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Button Clicked", Detail = text });
+        var result = await DialogService.Confirm($"Deseja excluir o local {this.entidade.Nome}?", "Excluir Local", new ConfirmOptions() { OkButtonText = "Sim", CancelButtonText = "Não" });
+
+        if (result.Value == true)
+        {
+            var excluido = await _localService.ExcluirLocal(this.entidade.Id);
+
+            if (excluido)
+            {
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Sucesso", Detail = "Local excluido", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
+                NavigationManager.NavigateTo("/locais/listar");
+            }
+        else
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Erro", Detail = "Local não excluido", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Local não excluido", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
+        }
     }
 
     private async Task<Local> atualizarEntidade()
