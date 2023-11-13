@@ -78,7 +78,7 @@
     private void OnClickQuantidadePagina(RadzenSplitButtonItem item)
     {
         if (item != null && int.TryParse(item.Value, out int quantidade)) this.PageSize = quantidade;
-        else this.PageSize = 2;
+        else this.PageSize = 5;
     }
 
     private async Task<List<Local>> OnClickAtualizar()

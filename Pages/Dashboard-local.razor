@@ -45,6 +45,7 @@
                     </ChildContent>
                 </RadzenPanel>
             </RadzenColumn>
+
             <RadzenColumn Size="12" SizeSM="6">
                 <RadzenPanel AllowCollapse="true" Style="width: 100%;">
                     <HeaderTemplate>
@@ -73,6 +74,70 @@
                     </ChildContent>
                 </RadzenPanel>
             </RadzenColumn>
+
+            <RadzenColumn Size="12">
+                <RadzenPanel AllowCollapse="true" Style="width: 100%;">
+                    <HeaderTemplate>
+                        <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                            <RadzenIcon Icon="table_chart" class="rz-mr-1" />Dados
+                        </RadzenText>
+                    </HeaderTemplate>
+
+                    <ChildContent>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap" Style="margin-bottom: 0.5rem; margin-top: 2rem;">
+                            <RadzenSplitButton Click=@(args => OnClickQuantidadePagina(args)) Text="Quantidade: 5" ButtonStyle="ButtonStyle.Dark" Variant="Variant.Outlined">
+                                <ChildContent>
+                                    <RadzenSplitButtonItem Text="Quantidade: 10" Value="10" />
+                                    <RadzenSplitButtonItem Text="Quantidade: 25" Value="25" />
+                                    <RadzenSplitButtonItem Text="Quantidade: 50" Value="50" />
+                                </ChildContent>
+                            </RadzenSplitButton>
+                        </RadzenStack>
+                        <RadzenDataGrid AllowAlternatingRows="false" PageSize="@PageSize" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                        Data="@entidade.Dados" TItem="LocalDadosObject" ColumnWidth="500px" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Property="Data" Title="Data" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center"/>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Temperatura" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{(dado.Clima.List.First().Main.Temp - 273.15):F2}°C")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Temp min" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{(dado.Clima.List.First().Main.Temp_min - 273.15):F2}°C")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Temp max" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{(dado.Clima.List.First().Main.Temp_max - 273.15):F2}°C")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Humidade" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{dado.Clima.List.First().Main.Humidity:F2}%")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Pressão atmosférica" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{dado.Clima.List.First().Main.Pressure:F2} hPa")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Nuvens" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{dado.Clima.List.First().Clouds.All:F2}%")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Velocidade vento" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{dado.Clima.List.First().Wind.Speed:F2} m/s")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Direção do vento" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{dado.Clima.List.First().Wind.Deg:F2}°")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Property="Longitude" Title="Velocidade max rajadas de vento" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{dado.Clima.List.First().Wind.Gust:F2} m/s")</Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </ChildContent>
+                </RadzenPanel>
+            </RadzenColumn>
         </RadzenRow>
     }
 </div>
@@ -84,6 +149,7 @@
     bool loading = true;
     List<ChaveValor> climaTabela = new List<ChaveValor>();
     List<ChaveValor> ventoNuvensTabela = new List<ChaveValor>();
+    int PageSize = 5;
 
     protected override async Task OnInitializedAsync()
     {
@@ -92,6 +158,12 @@
         this.entidade = await _localService.GetLocal(this.Id);
         atualizarTabelas();
         this.loading = false;
+    }
+
+    private void OnClickQuantidadePagina(RadzenSplitButtonItem item)
+    {
+        if (item != null && int.TryParse(item.Value, out int quantidade)) this.PageSize = quantidade;
+        else this.PageSize = 5;
     }
 
     private void OnClick(string text)
