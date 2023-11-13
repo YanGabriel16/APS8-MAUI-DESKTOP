@@ -1,6 +1,7 @@
 ﻿@page "/locais/adicionar"
 
 @using APS8_MAUI_DESKTOP.Objects;
+@using APS8_MAUI_DESKTOP.Objects.Request;
 @using APS8_MAUI_DESKTOP.Services;
 @inject LocalService _localService;
 @inject NotificationService NotificationService;
@@ -14,10 +15,38 @@
     </RadzenCard>
 
     <RadzenCard Variant="Variant.Filled" Class="rz-mx-auto" Style="margin-top: 2rem">
-
+            <RadzenRow Gap="1rem">
+                <RadzenColumn Size="12">
+                    <RadzenStack>
+                        <RadzenFormField Text="Nome do local" Variant="Variant.Outlined">
+                            <RadzenTextBox @bind-Value="@request.Nome" />
+                        </RadzenFormField>
+                        <RadzenFormField Text="Latitude" Variant="Variant.Outlined">
+                            <RadzenNumeric @bind-Value="@request.Latitude" />
+                        </RadzenFormField>
+                        <RadzenFormField Text="Longitude" Variant="Variant.Outlined">
+                            <RadzenNumeric @bind-Value="@request.Longitude" />
+                        </RadzenFormField>
+                        <RadzenFormField Text="CEP" Variant="Variant.Outlined">
+                            <RadzenNumeric @bind-Value="@request.Cep" />
+                        </RadzenFormField>
+                        <RadzenButton Click=@(args => NavigationManager.NavigateTo("/locais/adicionar")) Text="Consultar CEP" ButtonStyle="ButtonStyle.Primary" />
+                        <RadzenFormField Text="Cidade" Variant="Variant.Outlined">
+                            <RadzenTextBox @bind-Value="@request.Cidade" />
+                        </RadzenFormField>
+                        <RadzenFormField Text="Estado" Variant="Variant.Outlined">
+                            <RadzenTextBox @bind-Value="@request.Estado" />
+                        </RadzenFormField>
+                        <RadzenFormField Text="País" Variant="Variant.Outlined">
+                            <RadzenTextBox @bind-Value="@request.Pais" />
+                        </RadzenFormField>
+                        <RadzenButton Click=@(args => NavigationManager.NavigateTo("/locais/adicionar")) Text="Adicionar" ButtonStyle="ButtonStyle.Primary" />
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
     </RadzenCard>
 </div>
 
 @code {
-
+    AdicionarLocalRequest request = new AdicionarLocalRequest();
 }

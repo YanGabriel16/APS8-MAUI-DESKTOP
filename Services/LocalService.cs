@@ -41,7 +41,7 @@ namespace APS8_MAUI_DESKTOP.Services
         {
             try
             {
-                HttpResponseMessage response = await _httpClient.GetAsync($"/local/{id}");
+                HttpResponseMessage response = await _httpClient.GetAsync($"/api/Local/local/{id}");
 
                 if (response.IsSuccessStatusCode)
                 {

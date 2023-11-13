@@ -7,6 +7,13 @@
 @inject NavigationManager NavigationManager;
 
 
+@using APS8_MAUI_DESKTOP.Objects;
+@using APS8_MAUI_DESKTOP.Services;
+@inject LocalService _localService;
+@inject NotificationService NotificationService;
+@inject NavigationManager NavigationManager
+
+
 <div Class="rz-p-0 rz-p-md-12">
     <RadzenCard Variant="Variant.Filled" Class="rz-mx-auto">
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Gap="0.5rem" Wrap="FlexWrap.Wrap">
@@ -16,14 +23,44 @@
     </RadzenCard>
 
     <RadzenCard Variant="Variant.Filled" Class="rz-mx-auto" Style="margin-top: 2rem">
-
+        <RadzenRow Gap="1rem">
+            <RadzenColumn Size="12">
+                <RadzenStack>
+                    <RadzenFormField Text="Cod" Variant="Variant.Text">
+                        <RadzenNumeric Disabled="true" @bind-Value="@entidade.Id" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Nome do local" Variant="Variant.Text">
+                        <RadzenTextBox Disabled @bind-Value="@entidade.Nome" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Latitude" Variant="Variant.Text">
+                        <RadzenNumeric Disabled="true" @bind-Value="@entidade.Latitude" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Longitude" Variant="Variant.Text">
+                        <RadzenNumeric Disabled="true" @bind-Value="@entidade.Longitude" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="CEP" Variant="Variant.Text">
+                        <RadzenNumeric Disabled="true" @bind-Value="@entidade.Cep" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Cidade" Variant="Variant.Text">
+                        <RadzenTextBox Disabled="true" @bind-Value="@entidade.Cidade" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Estado" Variant="Variant.Text">
+                        <RadzenTextBox Disabled="true" @bind-Value="@entidade.Estado" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="País" Variant="Variant.Text">
+                        <RadzenTextBox Disabled="true" @bind-Value="@entidade.Pais" />
+                    </RadzenFormField>
+                    <RadzenButton Click=@(args => NavigationManager.NavigateTo($"/locais/excluir/{entidade.Id}")) Text="Excluir" ButtonStyle="ButtonStyle.Danger" />
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
     </RadzenCard>
 </div>
 
 @code {
     [Parameter] public string Id { get; set; }
 
-    Local entidade;
+    Local entidade = new();
     bool loading = true;
 
     protected override async Task OnInitializedAsync()
@@ -31,6 +68,7 @@
         await base.OnInitializedAsync();
 
         this.entidade = await _localService.GetLocal(this.Id);
+        this.loading = false;
     }
 
     private void OnClick(string text)

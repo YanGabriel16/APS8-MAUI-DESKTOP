@@ -84,8 +84,8 @@
     private async Task<List<Local>> OnClickAtualizar()
     {
         this.loading = true;
-        locaisAtualziado = await _localService.GetLocais();
+        var locaisAtualizados = await _localService.GetLocais();
         this.loading = false;
-        return locaisAtualziado;
+        return locaisAtualizados;
     }
 }
