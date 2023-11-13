@@ -9,14 +9,13 @@ namespace APS8_MAUI_DESKTOP.Utils
 {
     public static class ClimaUtils
     {
-        public static int? GetClimaGravidade(int status)
+        public static int? GetClimaGravidade(decimal status)
         {
             switch (status)
             {
                 case 800:
                 case 801:
                 case 802:
-                case 803:
                 case 804:
                     return 1;
 
@@ -34,6 +33,7 @@ namespace APS8_MAUI_DESKTOP.Utils
                 case 321:
                 case 500:
                 case 501:
+                case 803:
                     return 2;
 
                 case 201:
@@ -80,7 +80,7 @@ namespace APS8_MAUI_DESKTOP.Utils
             }
         }
 
-        public static BadgeStyle GetClimaBadge(int status)
+        public static BadgeStyle GetClimaBadge(decimal status)
         {
             var tipo = GetClimaGravidade(status);
             switch (tipo)
@@ -101,5 +101,30 @@ namespace APS8_MAUI_DESKTOP.Utils
                     return BadgeStyle.Info;
             }
         }
+
+        public static AlertStyle GetClimaAlert(decimal status)
+        {
+            var tipo = GetClimaGravidade(status);
+            switch (tipo)
+            {
+                case 1:
+                    return AlertStyle.Success;
+
+                case 2:
+                    return AlertStyle.Info;
+
+                case 3:
+                    return AlertStyle.Warning;
+
+                case 4:
+                    return AlertStyle.Danger;
+
+                default:
+                    return AlertStyle.Info;
+            }
+        }
+
+        public static string GetUrlClimaIcone(string icone)
+            => $"https://openweathermap.org/img/wn/{icone}@2x.png";
     }
 }

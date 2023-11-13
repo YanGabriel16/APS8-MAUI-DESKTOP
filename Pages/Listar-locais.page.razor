@@ -37,7 +37,7 @@
                 <RadzenDataGridColumn TItem="Local" Title="Status" Sortable="false" Filterable="false" Width="15%" TextAlign="TextAlign.Center">
                     <Template Context="data">
                         <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center">
-                            <RadzenBadge BadgeStyle="@ClimaUtils.GetClimaBadge(@data.Id)" Text="@data.Dados.First().Clima.List.First().Weather.First().Description" />
+                            <RadzenBadge BadgeStyle="@ClimaUtils.GetClimaBadge(@data.Dados.First().Clima.List.First().Weather.First().Id)" Text="@data.Dados.First().Clima.List.First().Weather.First().Description" />
                         </RadzenStack>
                     </Template>
                 </RadzenDataGridColumn>
