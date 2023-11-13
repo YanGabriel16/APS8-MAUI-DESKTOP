@@ -6,12 +6,13 @@
 @using APS8_MAUI_DESKTOP.Utils;
 @inject LocalService _localService;
 @inject NotificationService NotificationService;
+@inject NavigationManager NavigationManager
 
 <div Class="rz-p-0 rz-p-md-12">
     <RadzenCard Variant="Variant.Filled" Class="rz-mx-auto">
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Gap="0.5rem" Wrap="FlexWrap.Wrap">
-            <RadzenButton Click=@(args => OnClick("Primary icon button")) Icon="add" Text="Adicionar Local" ButtonStyle="ButtonStyle.Primary" />
-            <RadzenButton Click=@(args => OnClick("Primary icon button")) Icon="refresh" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton Click=@(args => NavigationManager.NavigateTo("/locais/adicionar")) Disabled=@loading Icon="add" Text="Adicionar Local" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton Click=@(async args => entidades = await OnClickAtualizar()) Disabled=@loading Icon="refresh" ButtonStyle="ButtonStyle.Primary" />
         </RadzenStack>
     </RadzenCard>
 
@@ -26,7 +27,7 @@
             </RadzenSplitButton>
         </RadzenStack>
         <RadzenDataGrid AllowAlternatingRows="false" PageSize="@PageSize" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
-                        Data="@Locais" TItem="Local" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or">
+                        Data="@entidades" TItem="Local" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or">
             <Columns>
                 <RadzenDataGridColumn TItem="Local" Property="Id" Filterable="false" Title="Cod" Frozen="true" Width="5%" TextAlign="TextAlign.Center" />
                 <RadzenDataGridColumn TItem="Local" Property="Nome" Title="Local" Width="15%" />
@@ -41,11 +42,11 @@
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Local" Title="" Sortable="false" Filterable="false" Width="15%" TextAlign="TextAlign.Center">
-                    <Template>
+                    <Template Context="data">
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap">
-                            <RadzenButton Click=@(args => OnClick("Primary icon button")) Icon="settings" ButtonStyle="ButtonStyle.Primary" />
-                            <RadzenButton Click=@(args => OnClick("Warning icon button ")) Icon="edit" ButtonStyle="ButtonStyle.Warning" />
-                            <RadzenButton Click=@(args => OnClick("Danger icon button")) Icon="delete" ButtonStyle="ButtonStyle.Danger" />
+                            <RadzenButton Click=@(args => NavigationManager.NavigateTo($"/locais/dashboard/{data.Id}")) Disabled=@loading Icon="settings" ButtonStyle="ButtonStyle.Primary" />
+                            <RadzenButton Click=@(args => NavigationManager.NavigateTo($"/locais/editar/{data.Id}")) Disabled=@loading Icon="edit" ButtonStyle="ButtonStyle.Warning" />
+                            <RadzenButton Click=@(args => NavigationManager.NavigateTo($"/locais/excluir/{data.Id}")) Disabled=@loading Icon="delete" ButtonStyle="ButtonStyle.Danger" />
                         </RadzenStack>
                     </Template>
                 </RadzenDataGridColumn>
@@ -57,14 +58,16 @@
 
 
 @code {
-    List<Local> Locais;
+    List<Local> entidades;
     int PageSize = 5;
+    bool loading = true;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-        this.Locais = await _localService.GetLocais();
+        this.entidades = await _localService.GetLocais();
+        this.loading = false;
     }
 
     private void OnClick(string text)
@@ -72,9 +75,17 @@
         NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Button Clicked", Detail = text });
     }
 
-    void OnClickQuantidadePagina(RadzenSplitButtonItem item)
+    private void OnClickQuantidadePagina(RadzenSplitButtonItem item)
     {
         if (item != null && int.TryParse(item.Value, out int quantidade)) this.PageSize = quantidade;
         else this.PageSize = 2;
+    }
+
+    private async Task<List<Local>> OnClickAtualizar()
+    {
+        this.loading = true;
+        locaisAtualziado = await _localService.GetLocais();
+        this.loading = false;
+        return locaisAtualziado;
     }
 }

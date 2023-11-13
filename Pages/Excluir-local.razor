@@ -1,0 +1,48 @@
+﻿@page "/locais/excluir/{id}"
+
+@using APS8_MAUI_DESKTOP.Objects;
+@using APS8_MAUI_DESKTOP.Services;
+@inject LocalService _localService;
+@inject NotificationService NotificationService;
+@inject NavigationManager NavigationManager;
+
+
+<div Class="rz-p-0 rz-p-md-12">
+    <RadzenCard Variant="Variant.Filled" Class="rz-mx-auto">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Gap="0.5rem" Wrap="FlexWrap.Wrap">
+            <RadzenButton Click=@(args => NavigationManager.NavigateTo("/locais/listar")) Disabled=@loading Icon="chevron_left" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton Click=@(async args => entidade = await atualizarEntidade()) Disabled=@loading Icon="refresh" ButtonStyle="ButtonStyle.Primary" />
+        </RadzenStack>
+    </RadzenCard>
+
+    <RadzenCard Variant="Variant.Filled" Class="rz-mx-auto" Style="margin-top: 2rem">
+
+    </RadzenCard>
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; }
+
+    Local entidade;
+    bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        this.entidade = await _localService.GetLocal(this.Id);
+    }
+
+    private void OnClick(string text)
+    {
+        NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Button Clicked", Detail = text });
+    }
+
+    private async Task<Local> atualizarEntidade()
+    {
+        this.loading = true;
+        var localAtualizado = await _localService.GetLocal(this.Id);
+        this.loading = false;
+        return localAtualizado;
+    }
+}

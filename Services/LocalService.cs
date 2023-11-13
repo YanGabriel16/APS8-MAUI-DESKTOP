@@ -37,7 +37,7 @@ namespace APS8_MAUI_DESKTOP.Services
             }
         }
 
-        public async Task<Local> GetLocal(int id)
+        public async Task<Local> GetLocal(string id)
         {
             try
             {
