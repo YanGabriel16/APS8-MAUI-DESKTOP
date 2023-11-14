@@ -1,5 +1,6 @@
-﻿using APS8_MAUI_DESKTOP.Data;
+﻿using APS8_MAUI_DESKTOP.Services;
 using Microsoft.Extensions.Logging;
+using Radzen;
 
 namespace APS8_MAUI_DESKTOP
 {
@@ -16,13 +17,14 @@ namespace APS8_MAUI_DESKTOP
                 });
 
             builder.Services.AddMauiBlazorWebView();
+            builder.Services.AddRadzenComponents();
+            builder.Services.AddScoped<HttpClient>();
 
+            builder.Services.AddBlazorWebViewDeveloperTools();
 #if DEBUG
-		builder.Services.AddBlazorWebViewDeveloperTools();
 		builder.Logging.AddDebug();
 #endif
-
-            builder.Services.AddSingleton<WeatherForecastService>();
+            builder.Services.AddScoped<LocalService>();
 
             return builder.Build();
         }

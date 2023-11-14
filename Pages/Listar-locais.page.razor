@@ -1,0 +1,91 @@
+﻿@page "/locais/listar"
+
+@using System.Linq.Dynamic.Core
+@using APS8_MAUI_DESKTOP.Objects;
+@using APS8_MAUI_DESKTOP.Services;
+@using APS8_MAUI_DESKTOP.Utils;
+@inject LocalService _localService;
+@inject NotificationService NotificationService;
+@inject NavigationManager NavigationManager
+
+<div Class="rz-p-0 rz-p-md-12">
+    <RadzenCard Variant="Variant.Filled" Class="rz-mx-auto">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Gap="0.5rem" Wrap="FlexWrap.Wrap">
+            <RadzenButton Click=@(args => NavigationManager.NavigateTo("/locais/adicionar")) Disabled=@loading Icon="add" Text="Adicionar Local" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton Click=@(async args => entidades = await OnClickAtualizar()) Disabled=@loading Icon="refresh" ButtonStyle="ButtonStyle.Primary" />
+        </RadzenStack>
+    </RadzenCard>
+
+    <RadzenCard Variant="Variant.Filled" Class="rz-mx-auto" Style="margin-top: 2rem">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap" Style="margin-bottom: 0.5rem">
+            <RadzenSplitButton Click=@(args => OnClickQuantidadePagina(args)) Text="Quantidade: 5" ButtonStyle="ButtonStyle.Dark" Variant="Variant.Outlined">
+                <ChildContent>
+                    <RadzenSplitButtonItem Text="Quantidade: 10" Value="10" />
+                    <RadzenSplitButtonItem Text="Quantidade: 25" Value="25" />
+                    <RadzenSplitButtonItem Text="Quantidade: 50" Value="50" />
+                </ChildContent>
+            </RadzenSplitButton>
+        </RadzenStack>
+        <RadzenDataGrid AllowAlternatingRows="false" PageSize="@PageSize" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                        Data="@entidades" TItem="Local" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or">
+            <Columns>
+                <RadzenDataGridColumn TItem="Local" Property="Id" Filterable="false" Title="Cod" Frozen="true" Width="5%" TextAlign="TextAlign.Center" />
+                <RadzenDataGridColumn TItem="Local" Property="Nome" Title="Local" Width="15%" />
+                <RadzenDataGridColumn TItem="Local" Property="Cep" Title="CEP" Width="15%" />
+                <RadzenDataGridColumn TItem="Local" Property="Latitude" Title="Latitude" Width="15%" />
+                <RadzenDataGridColumn TItem="Local" Property="Longitude" Title="Longitude" Width="15%" />
+                <RadzenDataGridColumn TItem="Local" Title="Status" Sortable="false" Filterable="false" Width="15%" TextAlign="TextAlign.Center">
+                    <Template Context="data">
+                        <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center">
+                            <RadzenBadge BadgeStyle="@ClimaUtils.GetClimaBadge(@data.Dados.First().Clima.List.First().Weather.First().Id)" Text="@data.Dados.First().Clima.List.First().Weather.First().Description" />
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Local" Title="" Sortable="false" Filterable="false" Width="15%" TextAlign="TextAlign.Center">
+                    <Template Context="data">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap">
+                            <RadzenButton Click=@(args => NavigationManager.NavigateTo($"/locais/dashboard/{data.Id}")) Disabled=@loading Icon="settings" ButtonStyle="ButtonStyle.Primary" />
+                            <RadzenButton Click=@(args => NavigationManager.NavigateTo($"/locais/editar/{data.Id}")) Disabled=@loading Icon="edit" ButtonStyle="ButtonStyle.Warning" />
+                            <RadzenButton Click=@(args => NavigationManager.NavigateTo($"/locais/excluir/{data.Id}")) Disabled=@loading Icon="delete" ButtonStyle="ButtonStyle.Danger" />
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenCard>
+</div>
+
+
+
+@code {
+    List<Local> entidades;
+    int PageSize = 5;
+    bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        this.entidades = await _localService.GetLocais();
+        this.loading = false;
+    }
+
+    private void OnClick(string text)
+    {
+        NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Button Clicked", Detail = text });
+    }
+
+    private void OnClickQuantidadePagina(RadzenSplitButtonItem item)
+    {
+        if (item != null && int.TryParse(item.Value, out int quantidade)) this.PageSize = quantidade;
+        else this.PageSize = 5;
+    }
+
+    private async Task<List<Local>> OnClickAtualizar()
+    {
+        this.loading = true;
+        var locaisAtualizados = await _localService.GetLocais();
+        this.loading = false;
+        return locaisAtualizados;
+    }
+}
