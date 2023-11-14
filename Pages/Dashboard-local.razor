@@ -3,6 +3,7 @@
 @using APS8_MAUI_DESKTOP.Objects;
 @using APS8_MAUI_DESKTOP.Services;
 @using APS8_MAUI_DESKTOP.Utils;
+@using APS8_MAUI_DESKTOP.Componentes;
 @inject LocalService _localService;
 @inject NotificationService NotificationService;
 @inject NavigationManager NavigationManager
@@ -71,6 +72,67 @@
                                 </RadzenDataGridColumn>
                             </Columns>
                         </RadzenDataGrid>
+                    </ChildContent>
+                </RadzenPanel>
+            </RadzenColumn>
+
+            <RadzenColumn Size="12">
+                <RadzenPanel AllowCollapse="true" Style="width: 100%;">
+                    <HeaderTemplate>
+                        <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                            <RadzenIcon Icon="show_chart" class="rz-mr-1" />Gravidade da condição do clima nos ultimos 15 dias
+                        </RadzenText>
+                    </HeaderTemplate>
+
+                    <ChildContent>
+                        @if (graficoGravidade != null && graficoGravidade.Any())
+                        {
+                            <Grafico_linha GraficoItems="@graficoGravidade"></Grafico_linha>
+                        }
+                        <RadzenDataGrid AllowAlternatingRows="false" PageSize="5" AllowPaging="false" ShowPagingSummary="false" Data="@informacoesGraficoGravidade" TItem="ChaveValor" Style="margin-top: 0.5rem">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="ChaveValor" Title="Informações sobre valores do gráfico" Property="TitleOfCourtesy" TextAlign="TextAlign.Center">
+                                    <Columns>
+                                        <RadzenDataGridColumn TItem="ChaveValor" Property="Chave" Filterable="false" Title="" Frozen="true" Width="25%" TextAlign="TextAlign.Center" />
+                                        <RadzenDataGridColumn TItem="ChaveValor" Property="Valor" Filterable="false" Title="" Frozen="false" Width="75%" TextAlign="TextAlign.Start" />
+                                    </Columns>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </ChildContent>
+                </RadzenPanel>
+            </RadzenColumn>
+
+            <RadzenColumn Size="12">
+                <RadzenPanel AllowCollapse="true" Style="width: 100%;">
+                    <HeaderTemplate>
+                        <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                            <RadzenIcon Icon="show_chart" class="rz-mr-1" />Nuvens e humidade nos ultimos 15 dias
+                        </RadzenText>
+                    </HeaderTemplate>
+
+                    <ChildContent>
+                        @if (graficoNuvensHumidade != null && graficoNuvensHumidade.Any())
+                        {
+                            <Grafico_linha GraficoItems="@graficoNuvensHumidade"></Grafico_linha>
+                        }
+                    </ChildContent>
+                </RadzenPanel>
+            </RadzenColumn>
+
+            <RadzenColumn Size="12">
+                <RadzenPanel AllowCollapse="true" Style="width: 100%;">
+                    <HeaderTemplate>
+                        <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                            <RadzenIcon Icon="show_chart" class="rz-mr-1" />Dados do vento nos ultimos 15 dias
+                        </RadzenText>
+                    </HeaderTemplate>
+
+                    <ChildContent>
+                        @if (graficoVento != null && graficoVento.Any())
+                        {
+                            <Grafico_linha GraficoItems="@graficoVento"></Grafico_linha>
+                        }
                     </ChildContent>
                 </RadzenPanel>
             </RadzenColumn>
@@ -149,15 +211,34 @@
     bool loading = true;
     List<ChaveValor> climaTabela = new List<ChaveValor>();
     List<ChaveValor> ventoNuvensTabela = new List<ChaveValor>();
+    List<ChaveValor> informacoesGraficoGravidade = new List<ChaveValor>();
     int PageSize = 5;
+
+    List<GraficoItem> graficoGravidade = new List<GraficoItem>();
+    List<GraficoItem> graficoNuvensHumidade = new List<GraficoItem>();
+    List<GraficoItem> graficoVento = new List<GraficoItem>();
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
+        ConfigurarTabelas();
         this.entidade = await _localService.GetLocal(this.Id);
         atualizarTabelas();
+        ConfigurarValorGraficos();
         this.loading = false;
+    }
+
+    public void ConfigurarTabelas()
+    {
+        this.informacoesGraficoGravidade = new List<ChaveValor>
+        {
+            new ChaveValor("0", "Data sem informação"),
+            new ChaveValor("1", "Sem gravidade aparente (clima limpo/nublado)"),
+            new ChaveValor("2", "Gravidade baixa (chuvas fracas para medianas)"),
+            new ChaveValor("3", "Gravidade mediana/alerta (chuvas medianas para fortes)"),
+            new ChaveValor("4", "Gravidade alta/perigo (chuvas pesadas, tempestade, tornados...)")
+        };
     }
 
     private void OnClickQuantidadePagina(RadzenSplitButtonItem item)
@@ -176,6 +257,7 @@
         this.loading = true;
         var localAtualizado = await _localService.GetLocal(this.Id);
         atualizarTabelas();
+        ConfigurarValorGraficos();
         this.loading = false;
         return localAtualizado;
     }
@@ -199,6 +281,69 @@
             new ChaveValor("Direção do vento:", $"{entidade.Dados.First().Clima.List.First().Wind.Deg:F2}°"),
             new ChaveValor("Velocidade max rajadas de vento:", $"{entidade.Dados.First().Clima.List.First().Wind.Gust:F2} m/s"),
         };
+    }
+
+    public void ConfigurarValorGraficos()
+    {
+        this.graficoGravidade = new List<GraficoItem> { new GraficoItem("Gravidade do Clima", "red") };
+        this.graficoNuvensHumidade = new List<GraficoItem>
+        {
+            new GraficoItem("Porcentagem das Nuvens", "blue"),
+            new GraficoItem("Porcentagem da Humidade", "green")
+        };
+        this.graficoVento = new List<GraficoItem>
+        {
+            new GraficoItem("Velocidade em m/s", "purple"),
+            new GraficoItem("Velocidade Max. em m/s", "pink")
+        };
+
+        List<DateTime> ultimos15dias = DataUtils.ObterUltimos15Dias();
+
+        foreach (var data in ultimos15dias)
+        {
+            var climaDia = this.entidade.Dados.FindAll(x => DataUtils.FormatarData(x.Data) == DataUtils.FormatarData(data));
+
+            if (climaDia.Count > 0)
+            {
+                decimal valorGravidadeDia = 0;
+                decimal valorNuvensDia = 0;
+                decimal valorHumidadeDia = 0;
+                decimal valorVentoVelocidadeDia = 0;
+                decimal valorVentoVelocidadeMaxDia = 0;
+
+                foreach (var item in climaDia)
+                {
+                    valorGravidadeDia += ClimaUtils.GetClimaGravidade(item.Clima.List.First().Weather.First().Id).Value;
+                    valorNuvensDia += item.Clima.List.First().Clouds.All;
+                    valorHumidadeDia += item.Clima.List.First().Main.Humidity;
+                    valorVentoVelocidadeDia += (decimal)item.Clima.List.First().Wind.Speed;
+                    valorVentoVelocidadeMaxDia += (decimal)item.Clima.List.First().Wind.Gust;
+                }
+
+                int valorMediaGravidade = (int)Math.Ceiling(valorGravidadeDia / climaDia.Count);
+                graficoGravidade.First().Valor.Add(new DataItem(DataUtils.FormatDiaMes(data), valorMediaGravidade));
+
+                int valorMediaNuvens = (int)Math.Ceiling(valorNuvensDia / climaDia.Count);
+                graficoNuvensHumidade.First().Valor.Add(new DataItem(DataUtils.FormatDiaMes(data), valorMediaNuvens));
+
+                int valorMediaHumidade = (int)Math.Ceiling(valorHumidadeDia / climaDia.Count);
+                graficoNuvensHumidade[1].Valor.Add(new DataItem(DataUtils.FormatDiaMes(data), valorMediaHumidade));
+
+                int valorMediaVelocidadeVento = (int)Math.Ceiling(valorVentoVelocidadeDia / climaDia.Count);
+                graficoVento.First().Valor.Add(new DataItem(DataUtils.FormatDiaMes(data), valorMediaVelocidadeVento));
+
+                int valorMediaVelocidadeMaxVento = (int)Math.Ceiling(valorVentoVelocidadeMaxDia / climaDia.Count);
+                graficoVento[1].Valor.Add(new DataItem(DataUtils.FormatDiaMes(data), valorMediaVelocidadeMaxVento));
+            }
+            else
+            {
+                graficoGravidade.First().Valor.Add(new DataItem(DataUtils.FormatDiaMes(data), 0));
+                graficoNuvensHumidade.First().Valor.Add(new DataItem(DataUtils.FormatDiaMes(data), 0));
+                graficoNuvensHumidade[1].Valor.Add(new DataItem(DataUtils.FormatDiaMes(data), 0));
+                graficoVento.First().Valor.Add(new DataItem(DataUtils.FormatDiaMes(data), 0));
+                graficoVento[1].Valor.Add(new DataItem(DataUtils.FormatDiaMes(data), 0));
+            }
+        }
     }
 
     private string GetTexto(string inicio, string final) => $"{inicio} {final}";

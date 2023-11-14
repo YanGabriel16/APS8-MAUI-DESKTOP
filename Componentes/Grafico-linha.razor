@@ -1,0 +1,32 @@
+﻿@using System.Globalization
+@using APS8_MAUI_DESKTOP.Objects;
+@using APS8_MAUI_DESKTOP.Utils;
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12 my-5">
+            <RadzenChart>
+                @foreach (var item in GraficoItems)
+                {                    
+                    <RadzenLineSeries Smooth="@smooth" Data="@item.Valor" CategoryProperty="Date" Title="@item.Nome" LineType="LineType.Dashed" ValueProperty="Value">
+                        <RadzenMarkers MarkerType="MarkerType.Square" />
+                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                    </RadzenLineSeries>
+                }
+                <RadzenCategoryAxis Padding="20" Formatter="@FormatDiaMes" />
+                <RadzenValueAxis>
+                    <RadzenGridLines Visible="true" />
+                </RadzenValueAxis>
+            </RadzenChart>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<GraficoItem> GraficoItems { get; set; }
+
+    bool smooth = false;
+    bool showDataLabels = false;
+    
+    string FormatDiaMes(object value) => value != null ? Convert.ToDateTime(value).ToString("dd/MM") : string.Empty;
+}
