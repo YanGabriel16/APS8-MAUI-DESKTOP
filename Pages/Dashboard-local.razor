@@ -1,0 +1,205 @@
+﻿@page "/locais/dashboard/{id}"
+
+@using APS8_MAUI_DESKTOP.Objects;
+@using APS8_MAUI_DESKTOP.Services;
+@using APS8_MAUI_DESKTOP.Utils;
+@inject LocalService _localService;
+@inject NotificationService NotificationService;
+@inject NavigationManager NavigationManager
+
+
+<div Class="rz-p-0 rz-p-md-12">
+    <RadzenCard Variant="Variant.Filled" Class="rz-mx-auto">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Gap="0.5rem" Wrap="FlexWrap.Wrap">
+            <RadzenButton Click=@(args => NavigationManager.NavigateTo("/locais/listar")) Disabled=@loading Icon="chevron_left" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton Click=@(async args => entidade = await atualizarEntidade()) Disabled=@loading Icon="refresh" ButtonStyle="ButtonStyle.Primary" />
+        </RadzenStack>
+    </RadzenCard>
+
+    @if (entidade != null && entidade.Dados != null && entidade.Dados.Any())
+    {        
+        <RadzenRow class="rz-text-align-center" Gap="1rem" Style="margin-top: 2rem">
+            <RadzenColumn Size="12" SizeSM="6">
+                <RadzenPanel AllowCollapse="true" Style="width: 100%;">
+                    <HeaderTemplate>
+                        <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                            <RadzenIcon Icon="location_on" class="rz-mr-1" />@entidade.Nome
+                        </RadzenText>
+                    </HeaderTemplate>
+
+                    <ChildContent>
+                        <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Start" Style="margin-top: 2rem">
+                            <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text=@GetTexto("lat:", entidade.Latitude.ToString()) />
+                            <RadzenBadge BadgeStyle="BadgeStyle.Info" Text=@GetTexto("lon:", entidade.Longitude.ToString()) />
+                        </RadzenStack>
+                        <RadzenDataGrid AllowAlternatingRows="false" PageSize="6" AllowPaging="false" ShowPagingSummary="false" Data="@climaTabela" TItem="ChaveValor" Style="margin-top: 0.5rem">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="ChaveValor" Title="Informações do clima atual" Property="TitleOfCourtesy">
+                                    <Columns>
+                                        <RadzenDataGridColumn TItem="ChaveValor" Property="Chave" Filterable="false" Title="" Frozen="true" Width="50%" TextAlign="TextAlign.Start" />
+                                        <RadzenDataGridColumn TItem="ChaveValor" Property="Valor" Filterable="false" Title="" Frozen="false" Width="50%" TextAlign="TextAlign.Center" />
+                                    </Columns>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </ChildContent>
+                </RadzenPanel>
+            </RadzenColumn>
+
+            <RadzenColumn Size="12" SizeSM="6">
+                <RadzenPanel AllowCollapse="true" Style="width: 100%;">
+                    <HeaderTemplate>
+                        <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                            <RadzenIcon Icon="cloud" class="rz-mr-1" />Clima
+                        </RadzenText>
+                    </HeaderTemplate>
+
+                    <ChildContent>
+                        <RadzenText TextStyle="TextStyle.Subtitle2" Class="rz-display-flex rz-align-items-center rz-m-0" Style="margin-top: 2rem">
+                            @DataUtils.FormatFrase(entidade.Dados.First().Data)
+                        </RadzenText><br />
+                        <RadzenAlert AlertStyle="@ClimaUtils.GetClimaAlert(entidade.Dados.First().Clima.List.First().Weather.First().Id)" ShowIcon="false" AllowClose="false" Variant="Variant.Flat" Shade="Shade.Lighter">
+                            <RadzenImage Path="@ClimaUtils.GetUrlClimaIcone(entidade.Dados.First().Clima.List.First().Weather.First().Icon)" Style="width: 32px;" /> @entidade.Dados.First().Clima.List.First().Weather.First().Description.ToUpper()
+                        </RadzenAlert>
+                        <RadzenDataGrid AllowAlternatingRows="false" PageSize="4" AllowPaging="false" ShowPagingSummary="false" Data="@ventoNuvensTabela" TItem="ChaveValor" Style="margin-top: 0.5rem">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="ChaveValor" Title="Informações do vento/nuvens" Property="TitleOfCourtesy">
+                                    <Columns>
+                                        <RadzenDataGridColumn TItem="ChaveValor" Property="Chave" Filterable="false" Title="" Frozen="true" Width="50%" TextAlign="TextAlign.Start" />
+                                        <RadzenDataGridColumn TItem="ChaveValor" Property="Valor" Filterable="false" Title="" Frozen="false" Width="50%" TextAlign="TextAlign.Center" />
+                                    </Columns>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </ChildContent>
+                </RadzenPanel>
+            </RadzenColumn>
+
+            <RadzenColumn Size="12">
+                <RadzenPanel AllowCollapse="true" Style="width: 100%;">
+                    <HeaderTemplate>
+                        <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                            <RadzenIcon Icon="table_chart" class="rz-mr-1" />Dados
+                        </RadzenText>
+                    </HeaderTemplate>
+
+                    <ChildContent>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap" Style="margin-bottom: 0.5rem; margin-top: 2rem;">
+                            <RadzenSplitButton Click=@(args => OnClickQuantidadePagina(args)) Text="Quantidade: 5" ButtonStyle="ButtonStyle.Dark" Variant="Variant.Outlined">
+                                <ChildContent>
+                                    <RadzenSplitButtonItem Text="Quantidade: 10" Value="10" />
+                                    <RadzenSplitButtonItem Text="Quantidade: 25" Value="25" />
+                                    <RadzenSplitButtonItem Text="Quantidade: 50" Value="50" />
+                                </ChildContent>
+                            </RadzenSplitButton>
+                        </RadzenStack>
+                        <RadzenDataGrid AllowAlternatingRows="false" PageSize="@PageSize" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                        Data="@entidade.Dados" TItem="LocalDadosObject" ColumnWidth="500px" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Property="Data" Title="Data" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center"/>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Temperatura" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{(dado.Clima.List.First().Main.Temp - 273.15):F2}°C")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Temp min" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{(dado.Clima.List.First().Main.Temp_min - 273.15):F2}°C")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Temp max" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{(dado.Clima.List.First().Main.Temp_max - 273.15):F2}°C")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Humidade" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{dado.Clima.List.First().Main.Humidity:F2}%")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Pressão atmosférica" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{dado.Clima.List.First().Main.Pressure:F2} hPa")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Nuvens" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{dado.Clima.List.First().Clouds.All:F2}%")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Velocidade vento" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{dado.Clima.List.First().Wind.Speed:F2} m/s")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Title="Direção do vento" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{dado.Clima.List.First().Wind.Deg:F2}°")</Template>
+                                </RadzenDataGridColumn>
+
+                                <RadzenDataGridColumn TItem="LocalDadosObject" Property="Longitude" Title="Velocidade max rajadas de vento" Width="50px" MinWidth="50px" TextAlign="TextAlign.Center">
+                                    <Template Context="dado">@($"{dado.Clima.List.First().Wind.Gust:F2} m/s")</Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </ChildContent>
+                </RadzenPanel>
+            </RadzenColumn>
+        </RadzenRow>
+    }
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; }
+
+    Local entidade;
+    bool loading = true;
+    List<ChaveValor> climaTabela = new List<ChaveValor>();
+    List<ChaveValor> ventoNuvensTabela = new List<ChaveValor>();
+    int PageSize = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        this.entidade = await _localService.GetLocal(this.Id);
+        atualizarTabelas();
+        this.loading = false;
+    }
+
+    private void OnClickQuantidadePagina(RadzenSplitButtonItem item)
+    {
+        if (item != null && int.TryParse(item.Value, out int quantidade)) this.PageSize = quantidade;
+        else this.PageSize = 5;
+    }
+
+    private void OnClick(string text)
+    {
+        NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Button Clicked", Detail = text });
+    }
+
+    private async Task<Local> atualizarEntidade()
+    {
+        this.loading = true;
+        var localAtualizado = await _localService.GetLocal(this.Id);
+        atualizarTabelas();
+        this.loading = false;
+        return localAtualizado;
+    }
+
+    private void atualizarTabelas()
+    {
+        this.climaTabela = new List<ChaveValor>
+        {
+            new ChaveValor("Temperatura:", $"{(entidade.Dados.First().Clima.List.First().Main.Temp - 273.15):F2}°C"),
+            new ChaveValor("Temp. min:", $"{(entidade.Dados.First().Clima.List.First().Main.Temp_min - 273.15):F2}°C"),
+            new ChaveValor("Temp. max:", $"{(entidade.Dados.First().Clima.List.First().Main.Temp_max - 273.15):F2}°C"),
+            new ChaveValor("Humidade:", $"{entidade.Dados.First().Clima.List.First().Main.Humidity:F2}%"),
+            new ChaveValor("Pressão atmosférica:", $"{entidade.Dados.First().Clima.List.First().Main.Pressure:F2} hPa"),
+            new ChaveValor("Nivel do mar:", $"{entidade.Dados.First().Clima.List.First().Main.Sea_level:F2}"),
+        };
+
+        this.ventoNuvensTabela = new List<ChaveValor>
+        {
+            new ChaveValor("Nuvens:", $"{entidade.Dados.First().Clima.List.First().Clouds.All:F2}%"),
+            new ChaveValor("Velocidade vento:", $"{entidade.Dados.First().Clima.List.First().Wind.Speed:F2} m/s"),
+            new ChaveValor("Direção do vento:", $"{entidade.Dados.First().Clima.List.First().Wind.Deg:F2}°"),
+            new ChaveValor("Velocidade max rajadas de vento:", $"{entidade.Dados.First().Clima.List.First().Wind.Gust:F2} m/s"),
+        };
+    }
+
+    private string GetTexto(string inicio, string final) => $"{inicio} {final}";
+}
